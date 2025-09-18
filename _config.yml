@@ -22,25 +22,13 @@ navigation:
   - title: "Events"
     url: /events/
 
-# Social media usernames (for Minima footer)
+# Social media (for Minima footer and SEO)
 facebook_username: koreanadopteestogether
 instagram_username: koreanadopteestogether
-
-# SEO and Social Media settings
-author: Korean Adoptees Together
-social:
-  name: Korean Adoptees Together
-  links:
-    - https://www.facebook.com/koreanadopteestogether
-    - https://www.instagram.com/koreanadopteestogether
 
 # Facebook-specific settings for Open Graph
 facebook:
   publisher: https://www.facebook.com/koreanadopteestogether
 
-# Default values for all pages
-defaults:
-  - scope:
-      path: ""
-    values:
-      layout: default
+# SEO settings
+author: Korean Adoptees Together
