@@ -3,13 +3,13 @@
 
   <div class="wrapper">
     <div class="footer-col-wrapper">
-      <div class="footer-col footer-col-1">
-        <p>&copy; {{ site.time | date: '%Y' }} {{ site.title | escape }}. All rights reserved.</p>
+      <div class="footer-col footer-col-1" style="width: 60%;">
+        <p>&copy; {{ site.time | date: '%Y' }} All rights reserved.</p>
         <p><strong>{{ site.title | escape }}</strong></p>
         <p>{{ site.description | escape }}</p>
       </div>
 
-      <div class="footer-col footer-col-2">
+      <div class="footer-col footer-col-2" style="width: 35%;">
         {%- include social.html -%}
       </div>
     </div>
