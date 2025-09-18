@@ -22,16 +22,7 @@ We’d love to hear from you! Please fill out the form below:
 
 ## Follow Us
 
-{% raw %}
-<div class="social-icons">
-  <a href="https://www.facebook.com/koreanadopteestogether" target="_blank" aria-label="Facebook">
-    <i class="fab fa-facebook-square fa-2x"></i>
-  </a>
-  <a href="https://www.instagram.com/koreanadopteestogether/" target="_blank" aria-label="Instagram">
-    <i class="fab fa-instagram fa-2x"></i>
-  </a>
-</div>
-{% endraw %}
+{% include social-icons.html %}
 
 <style>
 /* Modern card-style form */
