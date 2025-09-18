@@ -9,8 +9,8 @@ permalink: /events/
 {% assign past_events = event_posts | where_exp: "post", "post.date < site.time" %}
 
 ## Upcoming Events
-{% if future_posts.size > 0 %}
-{% for post in future_posts %}
+{% if future_events.size > 0 %}
+{% for post in future_events %}
 - {{ post.date | date: "%b %d, %Y" }} - [{{ post.title }}]({{ post.url }})
 {% endfor %}
 {% else %}
@@ -18,8 +18,8 @@ No upcoming events scheduled.
 {% endif %}
 
 ## Past Events
-{% if past_posts.size > 0 %}
-{% for post in past_posts limit: 5 %}
+{% if past_events.size > 0 %}
+{% for post in past_events limit: 5 %}
 - {{ post.date | date: "%b %d, %Y" }} - [{{ post.title }}]({{ post.url }})
 {% endfor %}
 {% else %}
