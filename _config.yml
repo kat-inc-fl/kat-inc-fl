@@ -1,3 +1,10 @@
 title: "Korean Adoptees Together"
 description: "Nonprofit Organization Supporting Korean Adoptees"
 theme: minima
+navigation:
+  - title: "Home"
+    url: /
+  - title: "About"
+    url: /about/
+  - title: "Events"
+    url: /events/
