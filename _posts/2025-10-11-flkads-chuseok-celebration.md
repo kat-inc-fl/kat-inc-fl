@@ -2,6 +2,7 @@
 layout: post
 title: "Chuseok Celebration"
 date: 2025-10-11
+categories: events
 ---
 
 Come on down and connect with a couple dozen (and counting!) Korean adoptees and their families for an evening full of fun:
