@@ -22,6 +22,10 @@ navigation:
   - title: "Events"
     url: /events/
 
+# Social media usernames (for Minima footer)
+facebook_username: koreanadopteestogether
+instagram_username: koreanadopteestogether
+
 # SEO and Social Media settings
 author: Korean Adoptees Together
 social:
