@@ -5,7 +5,7 @@ date: 2025-10-11
 ---
 Come on down and connect with a couple dozen (and counting!) Korean adoptees and their families for an evening full of fun:
 
-- 🥟 Traditional Korean food  
+- 🥟 Traditional Korean food 
 - 🎶 Traditional Korean music performance  
 - 🥋 Taekwondo demonstration  
 - 🎨 Crafts & games for all ages  
