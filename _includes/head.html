@@ -1,33 +1,17 @@
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {%- seo -%}
+  <link rel="stylesheet" href="{{ "/assets/main.css" | relative_url }}">
+  {%- feed_meta -%}
+  {%- if jekyll.environment == 'production' and site.google_analytics -%}
+    {%- include google-analytics.html -%}
+  {%- endif -%}
 
-<!-- SEO and meta tags handled by jekyll-seo-tag -->
-{% seo %}
-
-<!-- Minima's main CSS (this is the key line for minima compatibility) -->
-<link rel="stylesheet" href="{{ "/assets/main.css" | relative_url }}">
-
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-v4r1B4nO+XwK1mZbQ9F0LZksFtrf+5KkDqSLI1+yP3evwZlD3LrUJqVZ1k+mHcZ2osGy1yz3pqAwBfcU6PtF0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-<!-- RSS Feed -->
-{% if site.plugins contains "jekyll-feed" or site.gems contains "jekyll-feed" %}
-  <link type="application/atom+xml" rel="alternate" href="{{ '/feed.xml' | absolute_url }}" title="{{ site.title }}">
-{% endif %}
-
-<!-- Favicon -->
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="manifest" href="/site.webmanifest">
-
-<!-- Google Fonts (minima sometimes uses this) -->
-{% if site.google_fonts %}
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family={{ site.google_fonts }}:ital,wght@0,400;0,500;0,700;1,400&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family={{ site.google_fonts }}:ital,wght@0,400;0,500;0,700;1,400&display=swap" media="print" onload="this.media='all'">
-  <noscript>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family={{ site.google_fonts }}:ital,wght@0,400;0,500;0,700;1,400&display=swap">
-  </noscript>
-{% endif %}
+  <!-- Customization - Favicon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">  
+</head>
