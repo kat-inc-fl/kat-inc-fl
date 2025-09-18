@@ -1,7 +1,19 @@
 title: "Korean Adoptees Together"
 description: "Nonprofit Organization Supporting Korean Adoptees"
+url: "https://kat-inc-fl.github.io"
+baseurl: ""
+
+# Theme and plugins
 theme: minima
+plugins:
+  - jekyll-seo-tag
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Site settings
 future: true
+
+# Navigation
 navigation:
   - title: "Home"
     url: /
@@ -9,3 +21,22 @@ navigation:
     url: /about/
   - title: "Events"
     url: /events/
+
+# SEO and Social Media settings
+author: Korean Adoptees Together
+social:
+  name: Korean Adoptees Together
+  links:
+    - https://www.facebook.com/koreanadopteestogether
+    - https://www.instagram.com/koreanadopteestogether
+
+# Facebook-specific settings for Open Graph
+facebook:
+  publisher: https://www.facebook.com/koreanadopteestogether
+
+# Default values for all pages
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
