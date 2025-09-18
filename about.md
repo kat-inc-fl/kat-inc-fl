@@ -21,16 +21,16 @@ We look forward to collaborating with other organizations that support adoptees 
 
 Meet our board members:
 
-![Amy Gilbert Photo](assets/images/AG%20photo.png){: .board-photo }
+![Amy Gilbert Photo](assets/images/AG-Photo.png){: .board-photo }
 **Amy Gilbert** – President  
 Amy was born with the name Kim, Hui Ra, in Seoul, South Korea. She is the author of
 *Becoming Korean: A Memoir,* which shares the story of her adoption as a child into a white American family and her discovery and reconnection with her Korean culture and birth family. Amy has served as a board member in several national and local non-profit organizations. In addition to being the President of Korean Adoptees Together, Inc., she is the Director of the Jacksonville Korean Education Center and teaches a Korean language beginner course
 
-![Heidi Cabral Photo](assets/images/HC%20photo.png){: .board-photo }
+![Heidi Cabral Photo](assets/images/HC-Photo.png){: .board-photo }
 **Heidi Cabral** – Treasurer  
 Heidi was adopted at six months old and grew up in South Carolina with her younger sister who is also adopted from Korea. Uniquely, they had an aunt and uncle that were among the First Wave of adoptees from Korea. As an adult, she is excited to embrace her Korean heritage as she learns more about the culture and language. Part of that growing experience has included meeting up with the local Jacksonville Korean Adoptee (KAD) group. She is excited to bring more KADs together in a loving community to support each otner.
 
-![Christina Bradford Photo](assets/images/CB%20photo.png){: .board-photo }
+![Christina Bradford Photo](assets/images/CB-Photo.png){: .board-photo }
 **Christina Bradford** – Secretary  
 Christina was adopted at nine months old to her family in South Florida, which included an older brother who is also a Korean adoptee. In 2018, Christina connected with a small but vibrant local Korean Adoptee group in Jacksonville, FL.
 Her interest in Korean history, culture, and food blossomed over the course of many
