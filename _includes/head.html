@@ -5,8 +5,8 @@
 <!-- SEO and meta tags handled by jekyll-seo-tag -->
 {% seo %}
 
-<!-- Minima CSS -->
-<link rel="stylesheet" href="{{ '/assets/main.css' | relative_url }}">
+<!-- Minima's main CSS (this is the key line for minima compatibility) -->
+<link rel="stylesheet" href="{{ "/assets/main.css" | relative_url }}">
 
 <!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-v4r1B4nO+XwK1mZbQ9F0LZksFtrf+5KkDqSLI1+yP3evwZlD3LrUJqVZ1k+mHcZ2osGy1yz3pqAwBfcU6PtF0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -16,6 +16,15 @@
   <link type="application/atom+xml" rel="alternate" href="{{ '/feed.xml' | absolute_url }}" title="{{ site.title }}">
 {% endif %}
 
-<!-- Favicon
+<!-- Favicon -->
 <link rel="shortcut icon" type="image/x-icon" href="{{ '/favicon.ico' | relative_url }}">
--->
+
+<!-- Google Fonts (minima sometimes uses this) -->
+{% if site.google_fonts %}
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family={{ site.google_fonts }}:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family={{ site.google_fonts }}:ital,wght@0,400;0,500;0,700;1,400&display=swap" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family={{ site.google_fonts }}:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+  </noscript>
+{% endif %}
