@@ -3,10 +3,10 @@ layout: page
 title: Events
 permalink: /events/
 ---
-# Upcoming & Past Events
 
-{% assign future_posts = site.posts | where_exp: "post", "post.date >= site.time" %}
-{% assign past_posts = site.posts | where_exp: "post", "post.date < site.time" %}
+{% assign event_posts = site.posts | where_exp: "post", "post.categories contains 'events'" %}
+{% assign future_events = event_posts | where_exp: "post", "post.date >= site.time" %}
+{% assign past_events = event_posts | where_exp: "post", "post.date < site.time" %}
 
 ## Upcoming Events
 {% if future_posts.size > 0 %}
