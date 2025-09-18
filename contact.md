@@ -3,23 +3,27 @@ layout: page
 title: Contact
 permalink: /contact/
 ---
-# Contact
+# Contact Us
 
 We’d love to hear from you! Please fill out the form below:
 
-<form action="https://formspree.io/f/mnnbeqjb" method="POST">
-  <label for="name">Name:</label><br>
-  <input type="text" id="name" name="name" required><br><br>
+<form action="https://formspree.io/f/mnnbeqjb" method="POST" class="contact-form">
+  <label for="name">Name:</label>
+  <input type="text" id="name" name="name" placeholder="Your name" required>
 
-  <label for="email">Email:</label><br>
-  <input type="email" id="email" name="_replyto" required><br><br>
+  <label for="email">Email:</label>
+  <input type="email" id="email" name="_replyto" placeholder="you@example.com" required>
 
-  <label for="message">Message:</label><br>
-  <textarea id="message" name="message" rows="6" required></textarea><br><br>
+  <label for="message">Message:</label>
+  <textarea id="message" name="message" rows="6" placeholder="Your message..." required></textarea>
 
   <input type="submit" value="Send">
 </form>
 
-## Social Media
-- **Facebook:** [koreanadopteestogether](https://www.facebook.com/koreanadopteestogether)  
-- **Instagram:** [@koreanadopteestogether](https://www.instagram.com/koreanadopteestogether/)
+## Follow Us
+
+<div class="social-icons">
+  <a href="https://www.facebook.com/koreanadopteestogether" target="_blank" aria-label="Facebook">
+    <i class="fab fa-facebook-square fa-2x"></i>
+  </a>
+  <a href="h
