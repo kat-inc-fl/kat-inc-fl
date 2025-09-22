@@ -1,0 +1,49 @@
+name: Update Resources from Google Sheet
+
+on:
+  workflow_dispatch:
+    # Manual trigger only
+
+jobs:
+  update-resources:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: |
+        npm init -y
+        npm install googleapis
+        
+    - name: Update resources from Google Sheet
+      env:
+        GOOGLE_SHEETS_API_KEY: ${{ secrets.GOOGLE_SHEETS_API_KEY }}
+        SPREADSHEET_ID: "11OpF8wS5vUyeX4gAJZrMpB57RQ1vgmwygudmsffDQVQ"
+      run: node scripts/update-resources.js
+      
+    - name: Check for changes
+      id: verify-changed-files
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "changed=true" >> $GITHUB_OUTPUT
+        else
+          echo "changed=false" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Commit and push changes
+      if: steps.verify-changed-files.outputs.changed == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Update resources from Google Sheet"
+        git push
