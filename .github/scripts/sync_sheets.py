@@ -36,9 +36,11 @@ def get_sheet_names() -> List[str]:
     # Method 2: Parse the main HTML page more thoroughly
     try:
         url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/edit"
+        print(f"Fetching HTML from: {url}")
         response = requests.get(url, timeout=15)
         response.raise_for_status()
         content = response.text
+        print(f"HTML content length: {len(content)} characters")
         
         # Look for the most reliable pattern: sheets array in JavaScript
         import json
@@ -47,9 +49,11 @@ def get_sheet_names() -> List[str]:
         sheets_pattern = r'"sheets":\s*(\[[^\]]+\])'
         match = re.search(sheets_pattern, content)
         if match:
+            print("Found sheets JSON pattern in HTML")
             try:
                 # Try to parse as JSON
                 sheets_json = match.group(1)
+                print(f"Sheets JSON snippet: {sheets_json[:200]}...")
                 sheets_data = json.loads(sheets_json)
                 
                 sheet_names = []
@@ -62,20 +66,27 @@ def get_sheet_names() -> List[str]:
                 if sheet_names:
                     print(f"✓ Found sheets via HTML JSON parsing: {sheet_names}")
                     return sheet_names
-            except json.JSONDecodeError:
-                pass
+            except json.JSONDecodeError as e:
+                print(f"JSON parsing failed: {e}")
+        else:
+            print("No sheets JSON pattern found in HTML")
         
         # Pattern 2: Look for individual sheet name patterns
+        print("Trying alternative patterns...")
         name_patterns = [
-            r'"name":"([^"]+)","sheetId":\d+',
-            r'"title":"([^"]+)","sheetId":\d+',
-            r'"sheetName":"([^"]+)"',
-            r'data-params="[^"]*sheet=([^"&]+)',
+            (r'"name":"([^"]+)","sheetId":\d+', "name+sheetId pattern"),
+            (r'"title":"([^"]+)","sheetId":\d+', "title+sheetId pattern"),
+            (r'"sheetName":"([^"]+)"', "sheetName pattern"),
+            (r'data-params="[^"]*sheet=([^"&]+)', "data-params pattern"),
+            (r'"name":"([^"]+)","index":\d+', "name+index pattern"),
         ]
         
-        for pattern in name_patterns:
+        for pattern, description in name_patterns:
             matches = re.findall(pattern, content)
+            print(f"Pattern '{description}': found {len(matches)} matches")
             if matches:
+                print(f"  Sample matches: {matches[:5]}")
+                
                 # Filter and clean matches
                 sheet_names = []
                 for match in matches:
@@ -87,7 +98,8 @@ def get_sheet_names() -> List[str]:
                         len(decoded) > 1 and 
                         not decoded.startswith('_') and
                         not decoded.startswith('http') and
-                        not decoded in ['true', 'false', 'null']):
+                        not decoded in ['true', 'false', 'null', 'undefined'] and
+                        not decoded.isdigit()):
                         sheet_names.append(decoded)
                 
                 if sheet_names:
@@ -97,18 +109,25 @@ def get_sheet_names() -> List[str]:
                         if name not in unique_names:
                             unique_names.append(name)
                     
-                    print(f"✓ Found sheets via pattern '{pattern}': {unique_names}")
+                    print(f"✓ Found sheets via pattern '{description}': {unique_names}")
                     return unique_names[:20]  # Reasonable limit
                     
     except Exception as e:
         print(f"HTML parsing failed: {e}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
     
     # Method 3: Try the RSS/Atom feeds
     try:
         feed_url = f"https://spreadsheets.google.com/feeds/worksheets/{SHEET_ID}/public/basic"
+        print(f"Trying RSS feed: {feed_url}")
         response = requests.get(feed_url, timeout=10)
+        print(f"RSS response status: {response.status_code}")
+        
         if response.status_code == 200:
             content = response.text
+            print(f"RSS content length: {len(content)} characters")
+            print(f"RSS content preview: {content[:300]}...")
             
             # Parse XML-like content for sheet titles
             import xml.etree.ElementTree as ET
@@ -117,10 +136,14 @@ def get_sheet_names() -> List[str]:
                 sheet_names = []
                 
                 # Look for entry titles (excluding the main document title)
-                for entry in root.findall('.//{http://www.w3.org/2005/Atom}entry'):
+                entries = root.findall('.//{http://www.w3.org/2005/Atom}entry')
+                print(f"Found {len(entries)} RSS entries")
+                
+                for i, entry in enumerate(entries):
                     title_elem = entry.find('.//{http://www.w3.org/2005/Atom}title')
                     if title_elem is not None and title_elem.text:
                         title = title_elem.text.strip()
+                        print(f"  Entry {i+1}: '{title}'")
                         if title and title not in sheet_names:
                             sheet_names.append(title)
                 
@@ -128,18 +151,24 @@ def get_sheet_names() -> List[str]:
                     print(f"✓ Found sheets via RSS feed: {sheet_names}")
                     return sheet_names
                     
-            except ET.ParseError:
+            except ET.ParseError as e:
+                print(f"XML parsing failed: {e}")
                 # Try regex on the XML content
                 title_pattern = r'<title[^>]*>([^<]+)</title>'
                 titles = re.findall(title_pattern, content)
+                print(f"Regex found {len(titles)} titles: {titles}")
                 if len(titles) > 1:  # First is usually document title
                     sheet_names = [t.strip() for t in titles[1:] if t.strip()]
                     if sheet_names:
                         print(f"✓ Found sheets via RSS regex: {sheet_names}")
                         return sheet_names
+        else:
+            print(f"RSS feed returned status {response.status_code}")
                         
     except Exception as e:
         print(f"RSS feed method failed: {e}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
     
     # If we get here, all detection methods failed
     print("❌ ERROR: Could not detect any sheet names!")
