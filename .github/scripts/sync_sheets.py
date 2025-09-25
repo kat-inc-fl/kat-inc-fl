@@ -42,75 +42,105 @@ def get_sheet_names() -> List[str]:
         content = response.text
         print(f"HTML content length: {len(content)} characters")
         
-        # Look for the most reliable pattern: sheets array in JavaScript
-        import json
+        # Modern approach: Look for the data structure that Google Sheets actually uses
+        # Let's search for various patterns that might contain sheet information
         
-        # Pattern 1: Find the sheets configuration in the page
-        sheets_pattern = r'"sheets":\s*(\[[^\]]+\])'
-        match = re.search(sheets_pattern, content)
-        if match:
-            print("Found sheets JSON pattern in HTML")
-            try:
-                # Try to parse as JSON
-                sheets_json = match.group(1)
-                print(f"Sheets JSON snippet: {sheets_json[:200]}...")
-                sheets_data = json.loads(sheets_json)
-                
-                sheet_names = []
-                for sheet in sheets_data:
-                    if isinstance(sheet, dict) and 'properties' in sheet:
-                        title = sheet['properties'].get('title')
-                        if title and not title.startswith('_'):
-                            sheet_names.append(title)
-                
-                if sheet_names:
-                    print(f"✓ Found sheets via HTML JSON parsing: {sheet_names}")
-                    return sheet_names
-            except json.JSONDecodeError as e:
-                print(f"JSON parsing failed: {e}")
-        else:
-            print("No sheets JSON pattern found in HTML")
-        
-        # Pattern 2: Look for individual sheet name patterns
-        print("Trying alternative patterns...")
-        name_patterns = [
-            (r'"name":"([^"]+)","sheetId":\d+', "name+sheetId pattern"),
-            (r'"title":"([^"]+)","sheetId":\d+', "title+sheetId pattern"),
-            (r'"sheetName":"([^"]+)"', "sheetName pattern"),
-            (r'data-params="[^"]*sheet=([^"&]+)', "data-params pattern"),
-            (r'"name":"([^"]+)","index":\d+', "name+index pattern"),
+        # Pattern 1: Look for sheet data in script tags or data attributes
+        script_patterns = [
+            r'window\._docs_chrome_config\s*=\s*({.+?});',
+            r'window\._docs_wiz_model\s*=\s*({.+?});',
+            r'bootstrapData:\s*({.+?}),',
+            r'"sheets":\s*(\[.+?\])',
+            r'"worksheets":\s*(\[.+?\])',
         ]
         
-        for pattern, description in name_patterns:
-            matches = re.findall(pattern, content)
+        for i, pattern in enumerate(script_patterns):
+            print(f"Trying script pattern {i+1}: {pattern[:50]}...")
+            matches = re.findall(pattern, content, re.DOTALL)
+            if matches:
+                print(f"  Found {len(matches)} matches")
+                for j, match in enumerate(matches[:3]):  # Check first 3 matches
+                    print(f"  Match {j+1} preview: {match[:100]}...")
+                    try:
+                        # Try to parse as JSON
+                        import json
+                        data = json.loads(match)
+                        
+                        # Recursively search for sheet names in the JSON
+                        def find_sheet_names(obj, path=""):
+                            names = []
+                            if isinstance(obj, dict):
+                                # Look for sheet-like structures
+                                if ('title' in obj or 'name' in obj) and ('sheetId' in obj or 'index' in obj or 'sheetType' in obj):
+                                    # This looks like a sheet object
+                                    title = obj.get('title') or obj.get('name')
+                                    if isinstance(title, str) and len(title.strip()) > 0:
+                                        title = title.strip()
+                                        if not title.startswith('_'):  # Skip hidden sheets
+                                            names.append(title)
+                                            print(f"    Found sheet at {path}: '{title}'")
+                                
+                                # Continue searching recursively
+                                for key, value in obj.items():
+                                    if key in ['sheets', 'worksheets', 'tabs', 'sheetData'] and isinstance(value, list):
+                                        for idx, item in enumerate(value):
+                                            names.extend(find_sheet_names(item, f"{path}.{key}[{idx}]"))
+                                    elif isinstance(value, (dict, list)):
+                                        names.extend(find_sheet_names(value, f"{path}.{key}"))
+                            elif isinstance(obj, list):
+                                for idx, item in enumerate(obj):
+                                    names.extend(find_sheet_names(item, f"{path}[{idx}]"))
+                            return names
+                        
+                        found_names = find_sheet_names(data)
+                        if found_names:
+                            # Remove duplicates while preserving order
+                            sheet_names = []
+                            for name in found_names:
+                                if name not in sheet_names:
+                                    sheet_names.append(name)
+                            
+                            if sheet_names:
+                                print(f"✓ Found sheet names: {sheet_names}")
+                                return sheet_names
+                        
+                    except json.JSONDecodeError as e:
+                        print(f"    JSON parsing failed: {e}")
+                        continue
+        
+        # Pattern 2: Look for sheet names in HTML structure
+        print("Trying HTML structure patterns...")
+        specific_patterns = [
+            (r'data-sheet-name="([^"]+)"', "data-sheet-name attribute"),
+            (r'sheet-tab[^>]*>([^<]+)<', "sheet tab content"),
+            (r'aria-label="[^"]*sheet[^"]*([^"]+)"', "aria-label with sheet"),
+            (r'"title":"([^"]+)",".*?"sheetType":"GRID"', "title with sheetType"),
+            (r'"name":"([^"]+)",".*?"sheetId":\d+', "name with sheetId"),
+        ]
+        
+        for pattern, description in specific_patterns:
+            matches = re.findall(pattern, content, re.IGNORECASE | re.DOTALL)
             print(f"Pattern '{description}': found {len(matches)} matches")
             if matches:
-                print(f"  Sample matches: {matches[:5]}")
+                print(f"  Sample matches: {matches[:10]}")
                 
-                # Filter and clean matches
+                # Filter matches that look like valid sheet names
                 sheet_names = []
                 for match in matches:
-                    # URL decode and clean
-                    import urllib.parse
-                    decoded = urllib.parse.unquote(match)
-                    # Filter out obvious non-sheet names
-                    if (decoded and 
-                        len(decoded) > 1 and 
-                        not decoded.startswith('_') and
-                        not decoded.startswith('http') and
-                        not decoded in ['true', 'false', 'null', 'undefined'] and
-                        not decoded.isdigit()):
-                        sheet_names.append(decoded)
+                    cleaned = match.strip()
+                    if (len(cleaned) > 0 and 
+                        not cleaned.startswith('_') and  # Skip hidden sheets
+                        not cleaned.startswith('http') and  # Skip URLs
+                        not cleaned.startswith('javascript:') and  # Skip JavaScript
+                        not cleaned in ['true', 'false', 'null', 'undefined'] and  # Skip literals
+                        not cleaned.isdigit() and  # Skip pure numbers
+                        len(cleaned) < 200):  # Skip overly long strings that aren't sheet names
+                        if cleaned not in sheet_names:
+                            sheet_names.append(cleaned)
                 
                 if sheet_names:
-                    # Remove duplicates while preserving order
-                    unique_names = []
-                    for name in sheet_names:
-                        if name not in unique_names:
-                            unique_names.append(name)
-                    
-                    print(f"✓ Found sheets via pattern '{description}': {unique_names}")
-                    return unique_names[:20]  # Reasonable limit
+                    print(f"✓ Found sheets via pattern '{description}': {sheet_names}")
+                    return sheet_names[:20]  # Reasonable limit
                     
     except Exception as e:
         print(f"HTML parsing failed: {e}")
