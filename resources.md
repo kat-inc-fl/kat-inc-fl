@@ -48,7 +48,7 @@ title: Resources
   {% assign heading_content = heading_data[1] %}
   {% assign heading_slug = heading_name | slugify %}
   
-## {{ heading_name }} {##{{ heading_slug }}}
+## {{ heading_name }} {#{{ heading_slug }}}
 
   {% comment %}Handle direct links (no sub-headings){% endcomment %}
   {% if heading_content.direct_links %}
