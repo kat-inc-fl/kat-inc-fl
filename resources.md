@@ -5,7 +5,33 @@ title: Resources
 
 # Resources
 
-*Last updated: {{ site.data.resources.last_updated | date: "%B %d, %Y at %I:%M %p UTC" }}*
+*Last updated: <span id="last-updated-time" data-utc-time="{{ site.data.resources.last_updated }}">{{ site.data.resources.last_updated | date: "%B %d, %Y at %I:%M %p UTC" }}</span>*
+
+<script>
+(function() {
+    const timeElement = document.getElementById('last-updated-time');
+    if (timeElement) {
+        const utcTimeString = timeElement.getAttribute('data-utc-time');
+        if (utcTimeString) {
+            try {
+                const utcDate = new Date(utcTimeString);
+                const localTimeString = utcDate.toLocaleString(undefined, {
+                    year: 'numeric',
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    timeZoneName: 'short'
+                });
+                timeElement.textContent = localTimeString;
+            } catch (error) {
+                console.warn('Could not parse timestamp:', utcTimeString);
+                // Fallback: keep the original UTC time display
+            }
+        }
+    }
+})();
+</script>
 
 ## Table of Contents
 
@@ -50,4 +76,4 @@ title: Resources
 
 ---
 
-*This page is automatically generated from our [Google Sheets database](https://docs.google.com/spreadsheets/d/11OpF8wS5vUyeX4gAJZrMpB57RQ1vgmwygudmsffDQVQ/edit?usp=sharing). To suggest updates or additions, please modify the spreadsheet or [contact us](mailto:your-email@example.com).*
+*To suggest updates or additions, please [contact us]({% contact.md %}).*
