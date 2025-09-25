@@ -76,4 +76,4 @@ title: Resources
 
 ---
 
-*To suggest updates or additions, please [contact us]({% contact.md %}).*
+*To suggest updates or additions, please [contact us]({% link contact.md %}).*
