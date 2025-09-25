@@ -13,68 +13,81 @@ from typing import Dict, List, Any, Optional
 # Your Google Sheets document ID
 SHEET_ID = "11OpF8wS5vUyeX4gAJZrMpB57RQ1vgmwygudmsffDQVQ"
 
-# All sheet names in your Google Sheets document
-SHEET_NAMES = [
-    "Korean American Adoptee Organizations",
-    "International Korean Adoptee Organizations", 
-    "Other Facebook Groups",
-    "Live Discussion + Support Groups",
-    "General Korean Adoptee Organizations",
-    "Korean Adoptee Conferences",
-    "Language Learning",
-    "Birthland Tours",
-    "Korean American Organizations",
-    "Korean Culture Camps",
-    "Korean Government Websites",
-    "DNA Testing Companies",
-    "Resource Hubs"
-]
-
 def get_sheet_names() -> List[str]:
-    """Get all sheet names from the Google Sheets document."""
+    """Get all sheet names from the Google Sheets document using multiple detection methods."""
     
-    # Method 1: Try to get sheet info from the spreadsheet feed
+    print("Attempting to discover sheet names...")
+    
+    # Method 1: Try the Sheets API-like endpoints
     try:
-        # This endpoint sometimes returns sheet information
-        feed_url = f"https://spreadsheets.google.com/feeds/worksheets/{SHEET_ID}/public/basic"
-        response = requests.get(feed_url)
+        # This endpoint sometimes works for public sheets
+        api_url = f"https://sheets.googleapis.com/v4/spreadsheets/{SHEET_ID}?key=DUMMY&fields=sheets.properties.title"
+        response = requests.get(api_url, timeout=10)
         if response.status_code == 200:
-            content = response.text
-            # Look for sheet titles in the feed
-            title_pattern = r'<title[^>]*>([^<]+)</title>'
-            titles = re.findall(title_pattern, content)
-            if len(titles) > 1:  # First title is usually the document title
-                sheet_names = [title.strip() for title in titles[1:] if title.strip()]
+            data = response.json()
+            if 'sheets' in data:
+                sheet_names = [sheet['properties']['title'] for sheet in data['sheets']]
                 if sheet_names:
-                    print(f"Found sheets from feed: {sheet_names}")
+                    print(f"✓ Found sheets via API endpoint: {sheet_names}")
                     return sheet_names
     except Exception as e:
-        print(f"Feed method failed: {e}")
+        print(f"API method failed: {e}")
     
-    # Method 2: Try to extract from the main sheet HTML
+    # Method 2: Parse the main HTML page more thoroughly
     try:
         url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/edit"
-        response = requests.get(url)
+        response = requests.get(url, timeout=15)
         response.raise_for_status()
         content = response.text
         
-        # More comprehensive regex patterns
-        patterns = [
-            r'"name":"([^"]+)","index":\d+,"sheetType":"GRID"',
-            r'"sheets":\[[^\]]*"name":"([^"]+)"[^\]]*\]',
+        # Look for the most reliable pattern: sheets array in JavaScript
+        import json
+        
+        # Pattern 1: Find the sheets configuration in the page
+        sheets_pattern = r'"sheets":\s*(\[[^\]]+\])'
+        match = re.search(sheets_pattern, content)
+        if match:
+            try:
+                # Try to parse as JSON
+                sheets_json = match.group(1)
+                sheets_data = json.loads(sheets_json)
+                
+                sheet_names = []
+                for sheet in sheets_data:
+                    if isinstance(sheet, dict) and 'properties' in sheet:
+                        title = sheet['properties'].get('title')
+                        if title and not title.startswith('_'):
+                            sheet_names.append(title)
+                
+                if sheet_names:
+                    print(f"✓ Found sheets via HTML JSON parsing: {sheet_names}")
+                    return sheet_names
+            except json.JSONDecodeError:
+                pass
+        
+        # Pattern 2: Look for individual sheet name patterns
+        name_patterns = [
+            r'"name":"([^"]+)","sheetId":\d+',
+            r'"title":"([^"]+)","sheetId":\d+',
+            r'"sheetName":"([^"]+)"',
             r'data-params="[^"]*sheet=([^"&]+)',
         ]
         
-        for pattern in patterns:
+        for pattern in name_patterns:
             matches = re.findall(pattern, content)
             if matches:
-                # Clean and validate sheet names
+                # Filter and clean matches
                 sheet_names = []
                 for match in matches:
-                    # URL decode if necessary
+                    # URL decode and clean
                     import urllib.parse
                     decoded = urllib.parse.unquote(match)
-                    if decoded and not decoded.startswith('_') and len(decoded) > 1:
+                    # Filter out obvious non-sheet names
+                    if (decoded and 
+                        len(decoded) > 1 and 
+                        not decoded.startswith('_') and
+                        not decoded.startswith('http') and
+                        not decoded in ['true', 'false', 'null']):
                         sheet_names.append(decoded)
                 
                 if sheet_names:
@@ -83,43 +96,71 @@ def get_sheet_names() -> List[str]:
                     for name in sheet_names:
                         if name not in unique_names:
                             unique_names.append(name)
-                    print(f"Found sheets from HTML: {unique_names}")
-                    return unique_names
+                    
+                    print(f"✓ Found sheets via pattern '{pattern}': {unique_names}")
+                    return unique_names[:20]  # Reasonable limit
                     
     except Exception as e:
         print(f"HTML parsing failed: {e}")
     
-    # Method 3: Test known sheet names and common patterns
-    print("Testing known sheet names...")
-    potential_names = [
-        "Korean American Adoptee Organizations",
-        "Korean Adoptee Organizations", 
-        "Organizations",
-        "Resources",
-        "Data",
-        "Sheet1",
-        "Sheet 1"
-    ]
+    # Method 3: Try the RSS/Atom feeds
+    try:
+        feed_url = f"https://spreadsheets.google.com/feeds/worksheets/{SHEET_ID}/public/basic"
+        response = requests.get(feed_url, timeout=10)
+        if response.status_code == 200:
+            content = response.text
+            
+            # Parse XML-like content for sheet titles
+            import xml.etree.ElementTree as ET
+            try:
+                root = ET.fromstring(content)
+                sheet_names = []
+                
+                # Look for entry titles (excluding the main document title)
+                for entry in root.findall('.//{http://www.w3.org/2005/Atom}entry'):
+                    title_elem = entry.find('.//{http://www.w3.org/2005/Atom}title')
+                    if title_elem is not None and title_elem.text:
+                        title = title_elem.text.strip()
+                        if title and title not in sheet_names:
+                            sheet_names.append(title)
+                
+                if len(sheet_names) > 0:
+                    print(f"✓ Found sheets via RSS feed: {sheet_names}")
+                    return sheet_names
+                    
+            except ET.ParseError:
+                # Try regex on the XML content
+                title_pattern = r'<title[^>]*>([^<]+)</title>'
+                titles = re.findall(title_pattern, content)
+                if len(titles) > 1:  # First is usually document title
+                    sheet_names = [t.strip() for t in titles[1:] if t.strip()]
+                    if sheet_names:
+                        print(f"✓ Found sheets via RSS regex: {sheet_names}")
+                        return sheet_names
+                        
+    except Exception as e:
+        print(f"RSS feed method failed: {e}")
     
-    found_sheets = []
-    for name in potential_names:
-        try:
-            test_url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={name}"
-            response = requests.get(test_url)
-            if response.status_code == 200 and response.text.strip():
-                # Check if it's actual data (not an error page)
-                if not response.text.startswith('Error') and ',' in response.text:
-                    found_sheets.append(name)
-                    print(f"✓ Found valid sheet: {name}")
-        except:
-            continue
+    # If we get here, all detection methods failed
+    print("❌ ERROR: Could not detect any sheet names!")
+    print("All auto-detection methods failed:")
+    print("  - Google Sheets API endpoint")
+    print("  - HTML page parsing") 
+    print("  - RSS/Atom feed parsing")
+    print("")
+    print("This could be due to:")
+    print("  - Network connectivity issues")
+    print("  - Changes in Google Sheets structure") 
+    print("  - The spreadsheet becoming private/restricted")
+    print("  - Invalid spreadsheet ID")
+    print("")
+    print("Please check:")
+    print("  1. That the spreadsheet is publicly accessible")
+    print("  2. That the SHEET_ID is correct")
+    print("  3. Your internet connection")
     
-    if found_sheets:
-        return found_sheets
-    
-    # Last resort
-    print("Warning: Could not discover any sheets, using fallback")
-    return ["Korean American Adoptee Organizations"]
+    # Return empty list to indicate failure
+    return []
 
 def fetch_sheet_data(sheet_name: str) -> List[List[str]]:
     """Fetch data from a specific sheet as CSV."""
@@ -247,9 +288,17 @@ def main():
     """Main function to fetch and convert Google Sheets data."""
     print("Starting Google Sheets sync...")
     
-    # Use the predefined sheet names
-    sheet_names = SHEET_NAMES
-    print(f"Processing {len(sheet_names)} sheets: {sheet_names}")
+    # Try to automatically detect sheet names
+    sheet_names = get_sheet_names()
+    
+    # Check if detection failed
+    if not sheet_names:
+        print("💥 FATAL ERROR: Sheet name detection failed!")
+        print("Cannot proceed without knowing which sheets to process.")
+        print("Please check the error messages above and fix the issues.")
+        exit(1)
+    
+    print(f"✅ Successfully detected {len(sheet_names)} sheets: {sheet_names}")
     
     # Prepare output structure
     output = {
@@ -258,6 +307,7 @@ def main():
     }
     
     # Process each sheet
+    successful_sheets = 0
     for sheet_name in sheet_names:
         if not sheet_name.strip():
             continue
@@ -272,6 +322,7 @@ def main():
             processed_data = process_sheet_data(sheet_name, data)
             if processed_data:  # Only add if there's actual data
                 output["headings"][sheet_name] = processed_data
+                successful_sheets += 1
                 
                 # Count entries for this sheet
                 sub_heading_entries = sum(len(entries) for entries in processed_data.get("sub_headings", {}).values())
@@ -284,11 +335,17 @@ def main():
                 if processed_data.get("direct_links"):
                     summary_parts.append(f"{direct_entries} direct entries")
                 
-                print(f"  - Found {total_entries} total entries ({', '.join(summary_parts)})")
+                print(f"  ✅ Found {total_entries} total entries ({', '.join(summary_parts)})")
             else:
-                print(f"  - No data found for sheet: {sheet_name}")
+                print(f"  ⚠️  No data found for sheet: {sheet_name}")
         else:
-            print(f"  - Could not fetch data for sheet: {sheet_name}")
+            print(f"  ❌ Could not fetch data for sheet: {sheet_name}")
+    
+    # Check if we got any data at all
+    if successful_sheets == 0:
+        print("💥 FATAL ERROR: No sheets were successfully processed!")
+        print("All sheets either had no data or could not be fetched.")
+        exit(1)
     
     # Ensure _data directory exists
     os.makedirs("_data", exist_ok=True)
@@ -305,7 +362,7 @@ def main():
         yaml.dump(output, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
     
     print(f"✅ Successfully wrote data to {output_file}")
-    print(f"📊 Total headings: {len(output['headings'])}")
+    print(f"📊 Successfully processed {successful_sheets} of {len(sheet_names)} sheets")
     
     # Print summary
     total_entries = 0
@@ -317,6 +374,9 @@ def main():
         print(f"   - {heading}: {heading_entries} entries")
     
     print(f"📈 Total entries: {total_entries}")
+    
+    if successful_sheets < len(sheet_names):
+        print(f"⚠️  Warning: {len(sheet_names) - successful_sheets} sheets were not processed successfully")
 
 if __name__ == "__main__":
     main()
