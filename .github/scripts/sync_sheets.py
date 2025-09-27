@@ -223,13 +223,21 @@ def get_sheet_names() -> List[str]:
 
 def fetch_sheet_data(sheet_name: str) -> List[List[str]]:
     """Fetch data from a specific sheet as CSV."""
-    # Properly encode the sheet name for URL
+    # First, decode any HTML entities in the sheet name
+    import html
+    decoded_name = html.unescape(sheet_name)
+    
+    # Then properly encode for URL
     import urllib.parse
-    encoded_name = urllib.parse.quote(sheet_name, safe='')
+    encoded_name = urllib.parse.quote(decoded_name, safe='')
     
     # URL to export specific sheet as CSV
     url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={encoded_name}"
     
+    print(f"  Original sheet name: '{sheet_name}'")
+    if decoded_name != sheet_name:
+        print(f"  HTML-decoded name: '{decoded_name}'")
+    print(f"  URL-encoded name: '{encoded_name}'")
     print(f"  Fetching data from URL: {url}")
     
     try:
