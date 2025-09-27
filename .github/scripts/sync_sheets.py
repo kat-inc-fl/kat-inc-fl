@@ -223,12 +223,23 @@ def get_sheet_names() -> List[str]:
 
 def fetch_sheet_data(sheet_name: str) -> List[List[str]]:
     """Fetch data from a specific sheet as CSV."""
+    # Properly encode the sheet name for URL
+    import urllib.parse
+    encoded_name = urllib.parse.quote(sheet_name, safe='')
+    
     # URL to export specific sheet as CSV
-    url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
+    url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={encoded_name}"
+    
+    print(f"  Fetching data from URL: {url}")
     
     try:
         response = requests.get(url)
         response.raise_for_status()
+        
+        # Check if we got an error response
+        if response.text.strip().startswith('Error') or 'Invalid query' in response.text:
+            print(f"  Error response from Google Sheets: {response.text[:100]}")
+            return []
         
         # Parse CSV content
         lines = response.text.strip().split('\n')
@@ -265,10 +276,11 @@ def fetch_sheet_data(sheet_name: str) -> List[List[str]]:
             row.append(current_field.strip())
             data.append(row)
         
+        print(f"  Successfully fetched {len(data)} rows")
         return data
     
     except Exception as e:
-        print(f"Error fetching sheet '{sheet_name}': {e}")
+        print(f"  Error fetching sheet '{sheet_name}': {e}")
         return []
 
 def clean_url(url: str) -> Optional[str]:
