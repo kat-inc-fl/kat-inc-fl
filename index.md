@@ -5,7 +5,7 @@ permalink: /
 ---
 
 <p align="center">
-  <img src="/assets/korean-adoptee-logo-corrected-trigrams-final.png" alt="Korean Adoptees Together Logo" style="max-width:300px;">
+  <img src="/assets/korean adoptee logo corrected trigrams final.png" alt="Korean Adoptees Together Logo" style="max-width:300px;">
 </p>
 
 ## Welcome to Korean Adoptees Together
