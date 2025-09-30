@@ -3,6 +3,11 @@ layout: page
 title: Home
 permalink: /
 ---
+
+<p align="center">
+  <img src="/assets/images/korean-adoptee-logo-corrected-trigrams-final.png" alt="Korean Adoptees Together Logo" style="max-width:300px;">
+</p>
+
 ## Welcome to Korean Adoptees Together
 
 We are a nonprofit organization supporting Korean adoptees and their families. Our goal is to foster connection, share experiences, and celebrate identity.  
